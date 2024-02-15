@@ -8,6 +8,7 @@ const int BOARDSIZE = 4;
 vector<string> wordList;
 vector<string> dictionary;
 char board[BOARDSIZE][BOARDSIZE];
+int dictFirstLetter[26];
 
 void search();
 void search(string currentSearch, vector<int> usedY, vector<int> usedX, int yPos, int xPos);
@@ -35,6 +36,10 @@ int main(int argc, char *argv[])
     }
 
     buildDictionary();
+
+    for (int i = 0; i < 26; i++) {
+        cout << dictFirstLetter[i] << endl;
+    } 
 
     search();
 
@@ -107,7 +112,9 @@ bool compare(string a, string b) {
 }
 
 bool isValidFrag(string wordFrag) {
-    for (int i = 0; i < dictionary.size(); i++) {
+    char temp = wordFrag[0];
+    int alphaValue = (temp - 'a');
+    for (int i = dictFirstLetter[alphaValue]; i < dictionary.size(); i++) {
         if (wordFrag == dictionary[i].substr(0, wordFrag.length())) {
             cout << wordFrag << " is a word frag\n";
             return true;
@@ -118,10 +125,11 @@ bool isValidFrag(string wordFrag) {
 }
 
 bool isValidWord(string word) {
+    if (word.length() < 3) return false;
     for (int i = 0; i < dictionary.size(); i++) {
-        if (word == dictionary[i] && word.length() > 2) {
+        if (word == dictionary[i]) {
             cout << word << " is a word\n";
-            dictionary.erase(dictionary.begin() - 1 + i);
+            dictionary.erase(dictionary.begin() + i);
             return true;
         }
     }
@@ -132,6 +140,10 @@ bool isValidWord(string word) {
 void buildDictionary() {
     ifstream dictIn("dictionary.txt");
     string temp;
+    int alphaCount = 0;
+    char currentChar = 'a';
+    dictFirstLetter[alphaCount] = 0;
+    alphaCount++;
     
     if (!dictIn.is_open()) {
         cerr << "ERROR: Error opening file";
@@ -142,6 +154,11 @@ void buildDictionary() {
 
     while(!dictIn.eof()) {
         transform(temp.begin(), temp.end(), temp.begin(), ::tolower);
+        if (temp[0] != currentChar) {
+            currentChar = temp[0];
+            dictFirstLetter[alphaCount] = dictionary.size();
+            alphaCount++;
+        }
         dictionary.push_back(temp);
         dictIn >> temp;
     }
