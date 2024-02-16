@@ -2,13 +2,14 @@
 #include <fstream>
 #include <string>
 #include <stdlib.h>
+
 using namespace std;
 
 const int BOARDSIZE = 4;
 vector<string> wordList;
 vector<string> dictionary;
 char board[BOARDSIZE][BOARDSIZE];
-int dictFirstLetter[26];
+int dictFirstLetter[27];
 
 void search();
 void search(string currentSearch, vector<int> usedY, vector<int> usedX, int yPos, int xPos);
@@ -20,6 +21,7 @@ void buildDictionary();
 
 int main(int argc, char *argv[])
 {
+    cout << "Starting file";
     ifstream infile(argv[1]);
 
     //check if the file is opened
@@ -36,10 +38,6 @@ int main(int argc, char *argv[])
     }
 
     buildDictionary();
-
-    for (int i = 0; i < 26; i++) {
-        cout << dictFirstLetter[i] << endl;
-    } 
 
     search();
 
@@ -114,7 +112,7 @@ bool compare(string a, string b) {
 bool isValidFrag(string wordFrag) {
     char temp = wordFrag[0];
     int alphaValue = (temp - 'a');
-    for (int i = dictFirstLetter[alphaValue]; i < dictionary.size(); i++) {
+    for (int i = dictFirstLetter[alphaValue]; i < dictFirstLetter[alphaValue + 1]; i++) {
         if (wordFrag == dictionary[i].substr(0, wordFrag.length())) {
             cout << wordFrag << " is a word frag\n";
             return true;
@@ -126,7 +124,9 @@ bool isValidFrag(string wordFrag) {
 
 bool isValidWord(string word) {
     if (word.length() < 3) return false;
-    for (int i = 0; i < dictionary.size(); i++) {
+    char temp = word[0];
+    int alphaValue = (temp - 'a');
+    for (int i = dictFirstLetter[alphaValue]; i < dictFirstLetter[alphaValue + 1]; i++) {
         if (word == dictionary[i]) {
             cout << word << " is a word\n";
             dictionary.erase(dictionary.begin() + i);
@@ -153,6 +153,10 @@ void buildDictionary() {
     dictIn >> temp;
 
     while(!dictIn.eof()) {
+        if (temp.size() < 3) {
+            dictIn >> temp;
+            continue;
+        }
         transform(temp.begin(), temp.end(), temp.begin(), ::tolower);
         if (temp[0] != currentChar) {
             currentChar = temp[0];
@@ -162,4 +166,5 @@ void buildDictionary() {
         dictionary.push_back(temp);
         dictIn >> temp;
     }
+    dictFirstLetter[26] = dictionary.size();
 }
