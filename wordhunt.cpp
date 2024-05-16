@@ -160,6 +160,7 @@ void buildDictionary() {
         transform(temp.begin(), temp.end(), temp.begin(), ::tolower);
         if (temp[0] != currentChar) {
             currentChar = temp[0];
+            //dictFirstLetter is used later so you don't have to check the full dictionary every time
             dictFirstLetter[alphaCount] = dictionary.size();
             alphaCount++;
         }
