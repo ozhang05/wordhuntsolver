@@ -3,37 +3,60 @@
 #include <string>
 #include <stdlib.h>
 
-using namespace std;
+// extern "C" {
+//     #include "hidapi.h"
+// }
+
 
 const int BOARDSIZE = 4;
-vector<string> wordList;
-vector<string> dictionary;
+std::vector<std::string> wordList;
+std::vector<std::string> dictionary;
 char board[BOARDSIZE][BOARDSIZE];
 int dictFirstLetter[27];
 
 void search();
-void search(string currentSearch, vector<int> usedY, vector<int> usedX, int yPos, int xPos);
+void search(std::string currentSearch, std::vector<int> usedY, std::vector<int> usedX, int yPos, int xPos);
 void sortAnswers();
-bool compare(string a, string b);
-bool isValidFrag(string wordFrag);
-bool isValidWord(string word);
+bool compare(std::string a, std::string b);
+bool isValidFrag(std::string wordFrag);
+bool isValidWord(std::string word);
 void buildDictionary();
+//void playGame();
 
-int main(int argc, char *argv[])
-{
-    cout << "Starting file";
-    ifstream infile(argv[1]);
+int main(int argc, char *argv[]){
 
-    //check if the file is opened
-    if (!infile.is_open()) {
-        cerr << "ERROR: Error opening file";
-        exit(EXIT_FAILURE);
-    }
+    //std::cout << "\033[2J\033[1;1H";
 
-    //turn the file into 2d array
-    for (int y = 0; y < BOARDSIZE; y++) {
-        for (int x = 0; x < BOARDSIZE; x++) {
-            infile >> board[y][x];
+    if (argc == 2) {
+        std::ifstream infile(argv[1]);
+
+        //check if the file is opened
+        if (!infile.is_open()) {
+            std::cerr << "ERROR: Error opening file";
+            exit(EXIT_FAILURE);
+        }
+        //turn the file into 2d array
+        for (int y = 0; y < BOARDSIZE; y++) {
+            for (int x = 0; x < BOARDSIZE; x++) {
+                infile >> board[y][x];
+            }
+        }
+    } else {
+        std::string temp;
+
+        std::cout << "Please input your board using the following format:\n";
+        std::cout << "ABCD\n";
+        std::cout << "EFGH    -----> ABCDEFGHIJKLMNOP\n";
+        std::cout << "IJKL\n";
+        std::cout << "MNOP\n";
+
+        std::cin >> temp;
+        transform(temp.begin(), temp.end(), temp.begin(), ::tolower);
+
+        for (int y = 0; y < BOARDSIZE; y++) {
+            for (int x = 0; x < BOARDSIZE; x++) {
+                board[y][x] = temp[(y * BOARDSIZE) + x];
+            }
         }
     }
 
@@ -43,15 +66,17 @@ int main(int argc, char *argv[])
 
     sortAnswers();
 
+    //playGame();
+
     for (int i = 0; i < wordList.size(); i++) {
-        cout << "WordList: " << wordList[i] << endl;
+        std::cout << "WordList: " << wordList[i] << std::endl;
     }
     
     return 0;
 }
 
 void search() {
-    vector<int> temp1, temp2;
+    std::vector<int> temp1, temp2;
 
     for (int y = 0; y < BOARDSIZE; y++) {
         for (int x = 0; x < BOARDSIZE; x++) {
@@ -60,7 +85,7 @@ void search() {
     }
 }
 
-void search(string currentSearch, vector<int> usedY, vector<int> usedX, int yPos, int xPos) {
+void search(std::string currentSearch, std::vector<int> usedY, std::vector<int> usedX, int yPos, int xPos) {
 
     for (int i = 0; i < usedX.size(); i++) {
         if (yPos == usedY[i] && xPos == usedX[i]) return;
@@ -73,7 +98,7 @@ void search(string currentSearch, vector<int> usedY, vector<int> usedX, int yPos
     if (!isValidFrag(currentSearch)) {
         return;
     } else if (isValidWord(currentSearch)) {
-        wordList.push_back(currentSearch);
+        wordList.push_back(currentSearch + ": " + std::to_string(usedX[0]) + ", " + std::to_string(usedY[0]));
     }
     if (yPos+1 < BOARDSIZE) {
         if (xPos+1 < BOARDSIZE) {
@@ -105,48 +130,48 @@ void sortAnswers() {
     sort(wordList.begin(), wordList.end(), compare);
 }
 
-bool compare(string a, string b) {
+bool compare(std::string a, std::string b) {
     return (a.size() < b.size());
 }
 
-bool isValidFrag(string wordFrag) {
+bool isValidFrag(std::string wordFrag) {
     char temp = wordFrag[0];
     int alphaValue = (temp - 'a');
     for (int i = dictFirstLetter[alphaValue]; i < dictFirstLetter[alphaValue + 1]; i++) {
         if (wordFrag == dictionary[i].substr(0, wordFrag.length())) {
-            cout << wordFrag << " is a word frag\n";
+            std::cout << wordFrag << " is a word frag\n";
             return true;
         }
     }
-    cout << wordFrag << " is not a word frag\n";
+    std::cout << wordFrag << " is not a word frag\n";
     return false;
 }
 
-bool isValidWord(string word) {
+bool isValidWord(std::string word) {
     if (word.length() < 3) return false;
     char temp = word[0];
     int alphaValue = (temp - 'a');
     for (int i = dictFirstLetter[alphaValue]; i < dictFirstLetter[alphaValue + 1]; i++) {
         if (word == dictionary[i]) {
-            cout << word << " is a word\n";
+            std::cout << word << " is a word\n";
             dictionary.erase(dictionary.begin() + i);
             return true;
         }
     }
-    cout << word << " is not a word\n";
+    std::cout << word << " is not a word\n";
     return false;
 }
 
 void buildDictionary() {
-    ifstream dictIn("dictionary.txt");
-    string temp;
+    std::ifstream dictIn("dictionary.txt");
+    std::string temp;
     int alphaCount = 0;
     char currentChar = 'a';
     dictFirstLetter[alphaCount] = 0;
     alphaCount++;
     
     if (!dictIn.is_open()) {
-        cerr << "ERROR: Error opening file";
+        std::cerr << "ERROR: Error opening file";
         exit(EXIT_FAILURE);
     }
 
@@ -169,3 +194,35 @@ void buildDictionary() {
     }
     dictFirstLetter[26] = dictionary.size();
 }
+
+/*
+void playGame() {
+    
+    
+    iphone
+    vendor id 	0x004C
+    product id    0x730D
+    serial number C8PC973LN72P
+    
+
+    //hid_device *handle = hid_open(0x004C, 0x730D, NULL);
+
+    
+    mx master
+    Vendor ID:	0x046D
+    Product ID:	0xB019
+    
+    hid_device *handle = hid_open(0x046D, 0xB019, NULL);
+
+    int res = hid_init();
+
+    if (!handle) {
+		printf("Unable to open device\n");
+		hid_exit();
+        exit(EXIT_FAILURE);
+	} else {
+        std::cout << "Opening device worked\n";
+    }
+    
+}
+*/
